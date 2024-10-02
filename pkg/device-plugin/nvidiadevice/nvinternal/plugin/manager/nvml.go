@@ -35,6 +35,9 @@ func (m *nvmlmanager) GetPlugins() ([]plugin.Interface, error) {
 	var plugins []plugin.Interface
 	for _, r := range rms {
 		plugins = append(plugins, plugin.NewNvidiaDevicePlugin(m.config, r, m.cdiHandler, m.cdiEnabled))
+		// Add the gpucores and gpumem plugin
+		plugins = append(plugins, plugin.NewGPUMemDevicePlugin())
+		plugins = append(plugins, plugin.NewGPUCoresDevicePlugin())
 	}
 	return plugins, nil
 }

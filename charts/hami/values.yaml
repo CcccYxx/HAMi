@@ -71,8 +71,8 @@ scheduler:
       - --policy-config-file=/config/config.json
       - -v=4
   extender:
-    image: "projecthami/hami"
-    imagePullPolicy: IfNotPresent
+    image: "localhost:5000/hami"
+    imagePullPolicy: Always
     extraArgs:
       - --debug
       - -v=4
@@ -110,10 +110,10 @@ scheduler:
     annotations: {}
 
 devicePlugin:
-  image: "projecthami/hami"
-  monitorimage: "projecthami/hami"
+  image: "localhost:5000/hami"
+  monitorimage: "localhost:5000/hami"
   monitorctrPath: /usr/local/vgpu/containers
-  imagePullPolicy: IfNotPresent
+  imagePullPolicy: Always
   deviceSplitCount: 10
   deviceMemoryScaling: 1
   deviceCoreScaling: 1
