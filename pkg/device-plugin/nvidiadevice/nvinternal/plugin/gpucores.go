@@ -27,7 +27,7 @@ func DetectTotalGPUCores() int {
 	// Count the number of lines in the output, which represents the number of GPUs
 	gpuCount := len(strings.Split(strings.TrimSpace(string(output)), "\n"))
 
-	// Multiply the physical GPU count by 100 (as per your request)
+	// Multiply the physical GPU count by 100
 	return gpuCount * 100
 }
 
