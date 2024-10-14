@@ -6,7 +6,7 @@ imagePullSecrets: [ ]
 version: "v2.4.0"
 
 #Nvidia GPU Parameters
-resourceName: "nvidia.com/gpu"
+resourceName: "nvidia.com/vgpu-number"
 resourceMem: "nvidia.com/gpumem"
 resourceMemPercentage: "nvidia.com/gpumem-percentage"
 resourceCores: "nvidia.com/gpucores"

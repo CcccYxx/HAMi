@@ -17,7 +17,6 @@ limitations under the License.
 package plugin
 
 import (
-	"bytes"
 	"context"
 	"net"
 	"os"
@@ -33,42 +32,26 @@ import (
 	"github.com/Project-HAMi/HAMi/pkg/device-plugin/nvidiadevice/nvinternal/rm"
 )
 
-// Function to detect the total GPU memory on the node by querying `nvidia-smi`
-func DetectTotalGPUMemory() int {
-	// Execute nvidia-smi to get memory information
-	cmd := exec.Command("nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-
-	err := cmd.Run()
+// DetectTotalGPUCores detects the total number of GPU memory percentage using nvidia-smi
+func DetectTotalGPUMemoryPercentage() int {
+	// Run the nvidia-smi command to get the GPU count
+	cmd := exec.Command("nvidia-smi", "--query-gpu=name", "--format=csv,noheader")
+	output, err := cmd.Output()
 	if err != nil {
-		klog.Fatalf("Failed to run nvidia-smi: %v", err)
+		klog.Fatalf("Error running nvidia-smi: %v", err)
 	}
 
-	// Parse the output and sum the memory values
-	totalMemory := 0
-	lines := strings.Split(out.String(), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		// Convert the memory string (in MiB) to an integer
-		memory, err := strconv.Atoi(line)
-		if err != nil {
-			klog.Errorf("Failed to parse memory value: %v", err)
-			continue
-		}
-		totalMemory += memory
-	}
+	// Count the number of lines in the output, which represents the number of GPUs
+	gpuCount := len(strings.Split(strings.TrimSpace(string(output)), "\n"))
 
-	return totalMemory
+	// Multiply the physical GPU count by 100
+	return gpuCount * 100
 }
 
 type GPUMemDevicePlugin struct {
 	resourceName  string
 	server        *grpc.Server
-	totalGPUMemory int
+	totalGPUMemoryPercentage int
 	socketPath    string
 	numDevices    int // Number of GPU memory devices to advertise
 }
@@ -76,12 +59,12 @@ type GPUMemDevicePlugin struct {
 // NewGPUMemDevicePlugin creates and initializes the device plugin
 func NewGPUMemDevicePlugin() *GPUMemDevicePlugin {
 	// Detect total GPU memory and initialize plugin
-	totalGPUMemory := DetectTotalGPUMemory()
-	numDevices := totalGPUMemory // Divide total memory into devices
+	totalGPUMemoryPercentage := DetectTotalGPUMemoryPercentage()
+	numDevices := totalGPUMemoryPercentage // Divide total memory into devices
 	return &GPUMemDevicePlugin{
-		resourceName: 	"nvidia.com/gpumem",
+		resourceName: 	"nvidia.com/gpumem-percentage",
 		server: 		grpc.NewServer([]grpc.ServerOption{}...),
-		totalGPUMemory: totalGPUMemory,
+		totalGPUMemoryPercentage: totalGPUMemoryPercentage,
 		numDevices:     numDevices,
 		socketPath:     pluginapi.DevicePluginPath + "gpumem.sock",
 	}
